@@ -1,4 +1,6 @@
 {
+  "headless": true,
+  "silent": false,
   "preferences": {
     "general": {
       "fontName": "myicons",
