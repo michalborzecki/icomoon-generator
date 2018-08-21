@@ -4,14 +4,14 @@ const puppeteer = require('puppeteer');
 
 exports.copyTestHtml = async function (targetDir) {
   const renderHtmlPath = path.join(targetDir, 'render-test.html');
-  await fs.copy(path.join(__dirname, '../', 'comparison-files', 'render-test.html'), renderHtmlPath);
+  await fs.copy(path.join(__dirname, 'comparison-files', 'render-test.html'), renderHtmlPath);
   return renderHtmlPath;
 };
 
 exports.copyTestFont = async function (targetDir, fontProfile) {
   const fontOutputDir = path.join(targetDir, 'font');
   await fs.emptyDir(fontOutputDir);
-  await fs.copy(path.join(__dirname, '../', 'comparison-files', fontProfile), fontOutputDir);
+  await fs.copy(path.join(__dirname, 'comparison-files', fontProfile), fontOutputDir);
   return fontOutputDir;
 };
 

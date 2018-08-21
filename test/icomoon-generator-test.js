@@ -1,4 +1,4 @@
-const evilIcons = require('./helpers/evil-icons');
+const evilIcons = require('../test-helpers/evil-icons');
 const tmp = require('tmp');
 const generate = require('../index');
 const assert = require('assert');
@@ -6,17 +6,15 @@ const fs = require('fs-extra');
 const path = require('path');
 const xml2js = require('xml2js');
 const puppeteer = require('puppeteer');
-const browserControl = require('../lib/browser-control');
-const testRender = require('./helpers/test-render');
+const testRender = require('../test-helpers/test-render');
 
 let outputFolder;
 const initialConfig = {
   headless: true,
   silent: true,
 }
-const simpleTestTimeout = 30000;
-const renderTestTimeout = simpleTestTimeout + 5000;
-const doubleGenerateTestTimeout = simpleTestTimeout * 2;
+const simpleTestTimeout = 60000;
+const renderTestTimeout = simpleTestTimeout + 10000;
 
 beforeEach(function () {
   outputFolder = tmp.dirSync({ unsafeCleanup: true });
@@ -27,6 +25,93 @@ afterEach(function () {
 });
 
 describe('icomoon-generator', function () {
+  it('sets font name', async function () {
+    this.timeout(simpleTestTimeout);
+    const fontName = 'myicons';
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          fontName,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    assert(fs.existsSync(path.join(outputFolder.name, 'fonts', fontName + '.ttf')), fontName + '.ttf does not exist');
+  });
+
+  it('sets class prefix and postfix', async function () {
+    this.timeout(simpleTestTimeout);
+    const fontName = 'myicons';
+    const classPrefix = 'myicon-';
+    const classPostfix = '-v2';
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          classPrefix,
+          classPostfix,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    const css = (await fs.readFile(path.join(outputFolder.name, 'style.css'))).toString('utf8');
+    const exampleClass = `.${classPrefix}ei-archive${classPostfix}`;
+    assert(css.indexOf(exampleClass) !== -1, exampleClass + ' class cannot be found');
+  });
+
+  it('adds support for IE8', async function () {
+    this.timeout(simpleTestTimeout);
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          supportIE8: true,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    assert(fs.existsSync(path.join(outputFolder.name, 'fonts', 'icomoon.eot')), 'icomoon.eot does not exist');
+  });
+
+  it('removes support for IE8', async function () {
+    this.timeout(simpleTestTimeout);
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          supportIE8: false,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    assert(!fs.existsSync(path.join(outputFolder.name, 'fonts', 'icomoon.eot')), 'icomoon.eot exists');
+  });
+
+  it('adds support for IE7/6', async function () {
+    this.timeout(simpleTestTimeout);
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          supportIE8: true,
+          supportIE7IE6: true,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    assert(fs.existsSync(path.join(outputFolder.name, 'ie7', 'ie7.css')), 'ie7.css does not exist');
+  });
+
+  it('removes support for IE7/6', async function () {
+    this.timeout(simpleTestTimeout);
+    const config = Object.assign({}, initialConfig, {
+      preferences: {
+        general: {
+          supportIE8: true,
+          supportIE7IE6: false,
+        },
+      },
+    });
+    await generate(evilIcons.path, outputFolder.name, config);
+    assert(!fs.existsSync(path.join(outputFolder.name, 'ie7', 'ie7.css')), 'ie7.css exists');
+  });
+
   it('generates Sass variables', async function () {
     this.timeout(simpleTestTimeout);
     const config = Object.assign({}, initialConfig, {
@@ -64,6 +149,18 @@ describe('icomoon-generator', function () {
     });
     await generate(evilIcons.path, outputFolder.name, config);
     assert(fs.existsSync(path.join(outputFolder.name, 'style.less')), 'style.less does not exist');
+  });
+
+  it('does not generate any variables if preprocessor is not defined', async function () {
+    this.timeout(simpleTestTimeout);
+    await generate(evilIcons.path, outputFolder.name, initialConfig);
+    [
+      'style.scss',
+      'style.styl',
+      'style.less'
+    ].forEach(fileName => {
+      assert(!fs.existsSync(path.join(outputFolder.name, fileName)), fileName + ' does not exist');
+    });
   });
 
   it('adds metadata', async function () {
@@ -138,10 +235,9 @@ describe('icomoon-generator', function () {
   });
 
   it('sets em square height', async function () {
-    this.timeout(doubleGenerateTestTimeout);
+    this.timeout(simpleTestTimeout);
     const defaultPath = path.join(outputFolder.name, 'default');
     const changedEmPath = path.join(outputFolder.name, 'changedEm');
-    await generate(evilIcons.path, defaultPath, initialConfig);
     const config = Object.assign({}, initialConfig, {
       preferences: {
         fontMetrics: {
@@ -149,7 +245,10 @@ describe('icomoon-generator', function () {
         },
       },
     });
-    await generate(evilIcons.path, changedEmPath, config);
+    await Promise.all([
+      generate(evilIcons.path, defaultPath, initialConfig),
+      generate(evilIcons.path, changedEmPath, config),
+    ]);
 
     const fileToCompare = path.join('fonts', 'icomoon.ttf');
     const defaultStat = await fs.stat(path.join(defaultPath, fileToCompare));
