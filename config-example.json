@@ -1,37 +1,20 @@
 {
-  "headless": true,
+  "headless": false,
   "silent": false,
   "preferences": {
     "general": {
-      "fontName": "myicons",
-      "classPrefix": "myicon-",
-      "classPostfix": "-v2",
+      "fontName": "oneicons",
+      "classPrefix": "oneicon-",
       "supportIE8": true,
-      "supportIE7IE6": true,
-      "includeMetadataInFonts": true,
-      "generateVariablesFor": "less"
+      "generateVariablesFor": "sass"
     },
     "cssSelector": {
-      "use": "class",
-      "class": ".my-icon"
+      "use": "attribute"
     },
     "fontMetrics": {
-      "emSquareHeight": "512",
-      "baselineHeight": "45",
-      "whitespaceWidth": "46"
-    },
-    "metadata": {
-      "url": "https://localhost.com",
-      "description": "My fav icons",
-      "copyright": "My company 2018",
-      "designer": "Uncle Ben",
-      "designersUrl": "https://top-secret-page.com",
-      "license": "MIT",
-      "licenseUrl": "https://opensource.org/licenses/MIT"
-    },
-    "version": {
-      "major": "2",
-      "minor": "3"
+      "emSquareHeight": "1024",
+      "baselineHeight": "0",
+      "whitespaceWidth": "0"
     }
   }
 }
