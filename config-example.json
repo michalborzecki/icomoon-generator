@@ -5,7 +5,7 @@
     "general": {
       "fontName": "oneicons",
       "classPrefix": "oneicon-",
-      "supportIE8": true,
+      "supportIE8": false,
       "generateVariablesFor": "sass"
     },
     "cssSelector": {
